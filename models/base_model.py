@@ -9,9 +9,7 @@ import models
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 
-
 Base = declarative_base()
-
 
 class BaseModel:
     '''
@@ -25,7 +23,7 @@ class BaseModel:
         '''
             Initialize public instance attributes.
         '''
-        if (len(kwargs) == 0):
+        if len(kwargs) == 0:
             self.id = str(uuid.uuid4())
             self.created_at = datetime.now()
             self.updated_at = datetime.now()
@@ -35,7 +33,7 @@ class BaseModel:
                     kwargs["created_at"], "%Y-%m-%dT%H:%M:%S.%f")
             else:
                 self.created_at = datetime.now()
-            if kwargs.get("created_at"):
+            if kwargs.get("updated_at"):
                 kwargs["updated_at"] = datetime.strptime(
                     kwargs["updated_at"], "%Y-%m-%dT%H:%M:%S.%f")
             else:
@@ -50,15 +48,13 @@ class BaseModel:
         '''
             Return string representation of BaseModel class
         '''
-        return ("[{}] ({}) {}".format(self.__class__.__name__,
-                                      self.id, self.__dict__))
+        return "[{}] ({}) {}".format(self.__class__.__name__, self.id, self.__dict__)
 
     def __repr__(self):
         '''
             Return string representation of BaseModel class
         '''
-        return ("[{}] ({}) {}".format(self.__class__.__name__,
-                                      self.id, self.__dict__))
+        return "[{}] ({}) {}".format(self.__class__.__name__, self.id, self.__dict__)
 
     def save(self):
         '''
@@ -68,7 +64,7 @@ class BaseModel:
         models.storage.new(self)
         models.storage.save()
 
-    def to_dict(self):
+    def to_dict(self, exclude_password=True):
         '''
             Return dictionary representation of BaseModel class.
         '''
@@ -76,12 +72,15 @@ class BaseModel:
         cp_dct['__class__'] = self.__class__.__name__
         cp_dct['updated_at'] = self.updated_at.strftime("%Y-%m-%dT%H:%M:%S.%f")
         cp_dct['created_at'] = self.created_at.strftime("%Y-%m-%dT%H:%M:%S.%f")
-        if hasattr(self, "_sa_instance_state"):
-            del cp_dct["_sa_instance_state"]
-        return (cp_dct)
+        if exclude_password and 'password' in cp_dct:
+            del cp_dct['password']
+        if '_sa_instance_state' in cp_dct:
+            del cp_dct['_sa_instance_state']
+        return cp_dct
 
     def delete(self):
         '''
             Deletes an object
         '''
         models.storage.delete(self)
+
